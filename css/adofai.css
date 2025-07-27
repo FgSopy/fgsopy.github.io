@@ -1,22 +1,23 @@
+body {
+  background: #303030;
+  color: #ffffff;
+  margin: 0;
+}
+
 header {
   background: #ffffff;
   color: #cfefff;
 }
 
 header ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 header ul li {
-    float: left;
-}
-
-body {
-  background: #303030;
-  color: #ffffff;
+  float: left;
 }
 
 #title h2 {
