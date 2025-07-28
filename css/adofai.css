@@ -29,6 +29,7 @@ header ul li {
 }
 
 table {
+  margin: auto;
   background: #555555;
 }
 
@@ -38,11 +39,13 @@ table tr td p {
 
 h3 {
   margin: 15px;
+  margin-left: 35px;
   color: #c2c8ff;
 }
 
 div {
   margin: 5px;
+  margin-left: 25px;
 }
 
 div h4 {
@@ -60,4 +63,8 @@ div small {
 
 div h6 {
   margin: 0;
+}
+
+#footer {
+  width: 100%;
 }
