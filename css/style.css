@@ -1,3 +1,15 @@
 header {
-  
+  background: #ffffff;
+  color: #cfefff;
+}
+
+header ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+header ul li {
+  float: left;
 }
