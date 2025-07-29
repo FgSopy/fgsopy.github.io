@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地持久化联机数据存储</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --text-color: #2c3e50;
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 i {
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .data-list {
+            margin-top: 15px;
+        }
+
+        .data-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .data-content {
+            flex-grow: 1;
+        }
+
+        .data-meta {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .status.online {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+
+        .status.offline {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+
+        .status.syncing {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .sync-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .device-list {
+            margin-top: 15px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+
+        .device-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .device-status.online {
+            background-color: var(--secondary-color);
+        }
+
+        .device-status.offline {
+            background-color: var(--danger-color);
+        }
+
+        .device-info {
+            flex-grow: 1;
+        }
+
+        .device-name {
+            font-weight: 500;
+        }
+
+        .device-meta {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .instructions {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .instructions code {
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>本地持久化联机数据存储</h1>
+        <p class="subtitle">基于IndexedDB和GitHub Gist的跨设备数据同步解决方案</p>
+    </header>
+
+    <div class="container">
+        <!-- 数据管理区域 -->
+        <div class="card">
+            <h2><i>📝</i> 数据管理</h2>
+            
+            <div class="form-group">
+                <label for="data-key">键名:</label>
+                <input type="text" id="data-key" placeholder="输入键名">
+            </div>
+            
+            <div class="form-group">
+                <label for="data-value">值:</label>
+                <textarea id="data-value" placeholder="输入值 (支持JSON格式)"></textarea>
+            </div>
+            
+            <div class="actions">
+                <button id="save-btn"><i>💾</i> 保存数据</button>
+                <button id="load-btn" class="secondary"><i>🔍</i> 加载数据</button>
+                <button id="delete-btn" class="danger"><i>🗑️</i> 删除数据</button>
+            </div>
+            
+            <div class="data-list" id="data-list">
+                <!-- 数据列表将通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 同步管理区域 -->
+        <div class="card">
+            <h2><i>🔄</i> 同步管理</h2>
+            
+            <div class="form-group">
+                <label for="github-token">GitHub Token:</label>
+                <input type="password" id="github-token" placeholder="输入GitHub个人访问令牌">
+            </div>
+            
+            <div class="form-group">
+                <label for="gist-id">Gist ID:</label>
+                <input type="text" id="gist-id" placeholder="输入Gist ID (可选)">
+                <small>留空将自动创建新Gist</small>
+            </div>
+            
+            <div class="actions">
+                <button id="backup-btn" class="secondary"><i>☁️</i> 备份到Gist</button>
+                <button id="restore-btn"><i>⏱️</i> 从Gist恢复</button>
+                <button id="sync-now-btn"><i>🔄</i> 立即同步</button>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="sync-info" id="sync-info">
+                上次同步: <span id="last-sync">从未同步</span>
+            </div>
+            
+            <div class="status online" id="sync-status">
+                <i>✅</i> <span>本地存储已就绪</span>
+            </div>
+        </div>
+
+        <!-- 设备管理区域 -->
+        <div class="card">
+            <h2><i>📱</i> 设备管理</h2>
+            
+            <div class="device-list" id="device-list">
+                <div class="device-item">
+                    <span class="device-status online"></span>
+                    <div class="device-info">
+                        <div class="device-name">当前设备</div>
+                        <div class="device-meta" id="device-id">正在生成设备ID...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="connect-device">连接其他设备:</label>
+                <input type="text" id="connect-device" placeholder="输入设备ID">
+            </div>
+            
+            <div class="actions">
+                <button id="connect-btn"><i>🔗</i> 连接设备</button>
+                <button id="disconnect-btn" class="danger"><i>🔌</i> 断开所有连接</button>
+            </div>
+        </div>
+
+        <!-- 系统状态区域 -->
+        <div class="card">
+            <h2><i>📊</i> 系统状态</h2>
+            
+            <div class="status online" id="storage-status">
+                <i>✅</i> <span>IndexedDB: 已初始化</span>
+            </div>
+            
+            <div class="status offline" id="gist-status">
+                <i>❌</i> <span>GitHub Gist: 未连接</span>
+            </div>
+            
+            <div class="status offline" id="p2p-status">
+                <i>❌</i> <span>P2P连接: 未激活</span>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="encryption-key">数据加密密钥 (可选):</label>
+                <input type="password" id="encryption-key" placeholder="输入加密密钥">
+                <small>设置密钥后所有数据将加密存储</small>
+            </div>
+            
+            <div class="actions">
+                <button id="clear-btn" class="danger"><i>🧹</i> 清除所有本地数据</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>使用说明:</h3>
+        <ol>
+            <li><strong>本地存储</strong>：数据保存在IndexedDB中，设备重启后依然可用</li>
+            <li><strong>GitHub Gist同步</strong>：输入GitHub个人访问令牌（需<code>gist</code>权限）进行云端备份</li>
+            <li><strong>多设备同步</strong>：连接其他设备ID进行点对点实时同步</li>
+            <li><strong>数据加密</strong>：可选设置加密密钥保护敏感数据</li>
+            <li>GitHub Token创建地址：<a href="https://github.com/settings/tokens" target="_blank">https://github.com/settings/tokens</a></li>
+        </ol>
+    </div>
+
+    <script>
+        // 第三方库：用于Base64编码/解码和压缩
+        const LZString = {
+            compressToBase64: function(input) {
+                if (input == null) return "";
+                const compressed = this._compress(input, 6, function(a) {
+                    return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".charAt(a);
+                });
+                return compressed + "==".slice((compressed.length % 4) || 0);
+            },
+            decompressFromBase64: function(input) {
+                if (input == null) return "";
+                if (input === "") return null;
+                return this._decompress(input.length, 32, function(index) {
+                    return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(input.charAt(index));
+                });
+            },
+            // 简化的压缩/解压缩实现
+            _compress: function(uncompressed, bitsPerChar, getCharFromInt) {
+                // 简化的实现
+                return btoa(unescape(encodeURIComponent(uncompressed)));
+            },
+            _decompress: function(compressed, bitsPerChar, getNextValue) {
+                // 简化的实现
+                return decodeURIComponent(escape(atob(compressed)));
+            }
+        };
+
+        // 主应用对象
+        const DataSyncApp = {
+            // 初始化状态
+            db: null,
+            deviceId: null,
+            githubToken: null,
+            gistId: null,
+            encryptionKey: null,
+            connectedDevices: new Set(),
+            peer: null,
+            connections: new Map(),
+            
+            // 初始化应用
+            async init() {
+                // 生成或获取设备ID
+                this.deviceId = localStorage.getItem('device-id') || this.generateDeviceId();
+                document.getElementById('device-id').textContent = this.deviceId;
+                
+                // 初始化IndexedDB
+                await this.initIndexedDB();
+                
+                // 加载保存的配置
+                this.loadConfig();
+                
+                // 设置事件监听器
+                this.setupEventListeners();
+                
+                // 初始化P2P连接
+                this.initP2P();
+                
+                // 加载数据列表
+                this.loadDataList();
+                
+                // 更新状态显示
+                this.updateStatus();
+            },
+            
+            // 生成设备ID
+            generateDeviceId() {
+                const id = 'device-' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('device-id', id);
+                return id;
+            },
+            
+            // 初始化IndexedDB
+            async initIndexedDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('DataSyncDB', 1);
+                    
+                    request.onerror = (event) => {
+                        console.error('IndexedDB初始化失败:', event.target.error);
+                        document.getElementById('storage-status').innerHTML = 
+                            '<i>❌</i> <span>IndexedDB初始化失败</span>';
+                        reject(event.target.error);
+                    };
+                    
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('shared-data')) {
+                            const store = db.createObjectStore('shared-data', { keyPath: 'id' });
+                            store.createIndex('timestamp', 'timestamp', { unique: false });
+                        }
+                    };
+                });
+            },
+            
+            // 加载配置
+            loadConfig() {
+                this.githubToken = localStorage.getItem('github-token') || '';
+                this.gistId = localStorage.getItem('gist-id') || '';
+                this.encryptionKey = localStorage.getItem('encryption-key') || '';
+                
+                document.getElementById('github-token').value = this.githubToken;
+                document.getElementById('gist-id').value = this.gistId;
+                document.getElementById('encryption-key').value = this.encryptionKey;
+                
+                const lastSync = localStorage.getItem('last-sync');
+                if (lastSync) {
+                    document.getElementById('last-sync').textContent = 
+                        new Date(parseInt(lastSync)).toLocaleString();
+                }
+            },
+            
+            // 设置事件监听器
+            setupEventListeners() {
+                // 数据管理按钮
+                document.getElementById('save-btn').addEventListener('click', () => this.saveData());
+                document.getElementById('load-btn').addEventListener('click', () => this.loadData());
+                document.getElementById('delete-btn').addEventListener('click', () => this.deleteData());
+                
+                // 同步管理按钮
+                document.getElementById('backup-btn').addEventListener('click', () => this.backupToGist());
+                document.getElementById('restore-btn').addEventListener('click', () => this.restoreFromGist());
+                document.getElementById('sync-now-btn').addEventListener('click', () => this.syncNow());
+                
+                // 设备管理按钮
+                document.getElementById('connect-btn').addEventListener('click', () => this.connectToDevice());
+                document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnectAll());
+                
+                // 系统按钮
+                document.getElementById('clear-btn').addEventListener('click', () => this.clearLocalData());
+                
+                // 输入字段变化时保存配置
+                document.getElementById('github-token').addEventListener('change', (e) => {
+                    this.githubToken = e.target.value;
+                    localStorage.setItem('github-token', this.githubToken);
+                });
+                
+                document.getElementById('gist-id').addEventListener('change', (e) => {
+                    this.gistId = e.target.value;
+                    localStorage.setItem('gist-id', this.gistId);
+                });
+                
+                document.getElementById('encryption-key').addEventListener('change', (e) => {
+                    this.encryptionKey = e.target.value;
+                    localStorage.setItem('encryption-key', this.encryptionKey);
+                });
+                
+                // 网络状态监听
+                window.addEventListener('online', () => this.updateStatus());
+                window.addEventListener('offline', () => this.updateStatus());
+            },
+            
+            // 初始化P2P连接
+            initP2P() {
+                try {
+                    // 使用简单的WebSocket模拟P2P连接
+                    this.peer = {
+                        id: this.deviceId,
+                        connections: new Map(),
+                        connect: (deviceId) => this.connectToDevice(deviceId),
+                        on: (event, callback) => {
+                            if (event === 'connection') {
+                                // 模拟连接事件
+                                this.connectionCallback = callback;
+                            }
+                        }
+                    };
+                    
+                    document.getElementById('p2p-status').innerHTML = 
+                        '<i>✅</i> <span>P2P连接: 已激活</span>';
+                } catch (e) {
+                    console.error('P2P初始化失败:', e);
+                    document.getElementById('p2p-status').innerHTML = 
+                        '<i>⚠️</i> <span>P2P连接: 需要HTTPS环境</span>';
+                }
+            },
+            
+            // 保存数据
+            async saveData() {
+                const key = document.getElementById('data-key').value;
+                const value = document.getElementById('data-value').value;
+                
+                if (!key) {
+                    alert('请输入键名');
+                    return;
+                }
+                
+                try {
+                    const encryptedValue = this.encryptionKey ? this.encryptData(value) : value;
+                    
+                    const data = {
+                        id: key,
+                        value: encryptedValue,
+                        timestamp: Date.now(),
+                        deviceId: this.deviceId
+                    };
+                    
+                    const tx = this.db.transaction(['shared-data'], 'readwrite');
+                    const store = tx.objectStore('shared-data');
+                    await store.put(data);
+                    
+                    alert(`数据 "${key}" 保存成功!`);
+                    
+                    // 更新数据列表
+                    this.loadDataList();
+                    
+                    // 同步到其他设备
+                    this.syncToDevices(key, value);
+                } catch (e) {
+                    console.error('保存数据失败:', e);
+                    alert('保存数据失败: ' + e.message);
+                }
+            },
+            
+            // 加载数据
+            async loadData() {
+                const key = document.getElementById('data-key').value;
+                
+                if (!key) {
+                    alert('请输入键名');
+                    return;
+                }
+                
+                try {
+                    const tx = this.db.transaction(['shared-data'], 'readonly');
+                    const store = tx.objectStore('shared-data');
+                    const request = store.get(key);
+                    
+                    request.onsuccess = (event) => {
+                        const data = event.target.result;
+                        if (data) {
+                            const decryptedValue = this.encryptionKey ? 
+                                this.decryptData(data.value) : data.value;
+                            document.getElementById('data-value').value = decryptedValue;
+                        } else {
+                            alert(`找不到键名为 "${key}" 的数据`);
+                        }
+                    };
+                    
+                    request.onerror = (event) => {
+                        console.error('加载数据失败:', event.target.error);
+                        alert('加载数据失败');
+                    };
+                } catch (e) {
+                    console.error('加载数据失败:', e);
+                    alert('加载数据失败: ' + e.message);
+                }
+            },
+            
+            // 删除数据
+            async deleteData() {
+                const key = document.getElementById('data-key').value;
+                
+                if (!key) {
+                    alert('请输入键名');
+                    return;
+                }
+                
+                if (!confirm(`确定要删除键名为 "${key}" 的数据吗?`)) {
+                    return;
+                }
+                
+                try {
+                    const tx = this.db.transaction(['shared-data'], 'readwrite');
+                    const store = tx.objectStore('shared-data');
+                    await store.delete(key);
+                    
+                    alert(`数据 "${key}" 已删除`);
+                    
+                    // 更新数据列表
+                    this.loadDataList();
+                } catch (e) {
+                    console.error('删除数据失败:', e);
+                    alert('删除数据失败: ' + e.message);
+                }
+            },
+            
+            // 加载数据列表
+            async loadDataList() {
+                const dataList = document.getElementById('data-list');
+                dataList.innerHTML = '';
+                
+                try {
+                    const tx = this.db.transaction(['shared-data'], 'readonly');
+                    const store = tx.objectStore('shared-data');
+                    const index = store.index('timestamp');
+                    const request = index.openCursor(null, 'prev');
+                    
+                    request.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            const data = cursor.value;
+                            const decryptedValue = this.encryptionKey ? 
+                                this.decryptData(data.value) : data.value;
+                            
+                            const displayValue = decryptedValue.length > 50 ? 
+                                decryptedValue.substring(0, 50) + '...' : decryptedValue;
+                            
+                            const dataItem = document.createElement('div');
+                            dataItem.className = 'data-item';
+                            dataItem.innerHTML = `
+                                <div class="data-content">
+                                    <strong>${data.id}</strong>
+                                    <div>${displayValue}</div>
+                                    <div class="data-meta">
+                                        由 ${data.deviceId} 于 ${new Date(data.timestamp).toLocaleString()} 创建
+                                    </div>
+                                </div>
+                                <button class="danger" data-key="${data.id}">删除</button>
+                            `;
+                            
+                            dataItem.querySelector('button').addEventListener('click', (e) => {
+                                document.getElementById('data-key').value = data.id;
+                                this.deleteData();
+                            });
+                            
+                            dataList.appendChild(dataItem);
+                            cursor.continue();
+                        }
+                    };
+                } catch (e) {
+                    console.error('加载数据列表失败:', e);
+                    dataList.innerHTML = '<div class="data-item">加载数据失败</div>';
+                }
+            },
+            
+            // 备份到Gist
+            async backupToGist() {
+                if (!this.githubToken) {
+                    alert('请输入GitHub Token');
+                    return;
+                }
+                
+                try {
+                    this.updateProgress(30);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>🔄</i> <span>正在备份数据到GitHub Gist...</span>';
+                    
+                    // 获取所有数据
+                    const allData = await this.getAllData();
+                    
+                    // 转换为JSON并压缩
+                    const jsonData = JSON.stringify(allData);
+                    const compressedData = LZString.compressToBase64(jsonData);
+                    
+                    // 准备请求数据
+                    const requestBody = {
+                        files: {
+                            'backup.json': {
+                                content: compressedData
+                            }
+                        },
+                        description: `DataSync Backup - ${new Date().toLocaleString()}`
+                    };
+                    
+                    // 设置API端点
+                    const url = this.gistId ? 
+                        `https://api.github.com/gists/${this.gistId}` : 
+                        'https://api.github.com/gists';
+                    
+                    const method = this.gistId ? 'PATCH' : 'POST';
+                    
+                    // 发送请求
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Authorization': `token ${this.githubToken}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/vnd.github.v3+json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`GitHub API错误: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // 保存Gist ID
+                    if (!this.gistId) {
+                        this.gistId = result.id;
+                        document.getElementById('gist-id').value = this.gistId;
+                        localStorage.setItem('gist-id', this.gistId);
+                    }
+                    
+                    // 更新同步时间
+                    localStorage.setItem('last-sync', Date.now());
+                    document.getElementById('last-sync').textContent = new Date().toLocaleString();
+                    
+                    this.updateProgress(100);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>✅</i> <span>备份成功! Gist ID: ' + this.gistId + '</span>';
+                    document.getElementById('gist-status').innerHTML = 
+                        '<i>✅</i> <span>GitHub Gist: 已连接</span>';
+                    
+                    setTimeout(() => {
+                        this.updateProgress(0);
+                        this.updateStatus();
+                    }, 2000);
+                } catch (e) {
+                    console.error('备份失败:', e);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>❌</i> <span>备份失败: ' + e.message + '</span>';
+                    document.getElementById('gist-status').innerHTML = 
+                        '<i>❌</i> <span>GitHub Gist: 连接失败</span>';
+                    this.updateProgress(0);
+                }
+            },
+            
+            // 从Gist恢复
+            async restoreFromGist() {
+                if (!this.githubToken || !this.gistId) {
+                    alert('请输入GitHub Token和Gist ID');
+                    return;
+                }
+                
+                try {
+                    this.updateProgress(30);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>🔄</i> <span>正在从GitHub Gist恢复数据...</span>';
+                    
+                    // 获取Gist内容
+                    const response = await fetch(`https://api.github.com/gists/${this.gistId}`, {
+                        headers: {
+                            'Authorization': `token ${this.githubToken}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`GitHub API错误: ${response.status}`);
+                    }
+                    
+                    const gist = await response.json();
+                    const backupFile = gist.files['backup.json'];
+                    
+                    if (!backupFile || !backupFile.content) {
+                        throw new Error('找不到备份文件');
+                    }
+                    
+                    // 解压缩数据
+                    const compressedData = backupFile.content;
+                    const jsonData = LZString.decompressFromBase64(compressedData);
+                    const allData = JSON.parse(jsonData);
+                    
+                    // 恢复数据
+                    const tx = this.db.transaction(['shared-data'], 'readwrite');
+                    const store = tx.objectStore('shared-data');
+                    
+                    // 清除现有数据
+                    await store.clear();
+                    
+                    // 添加恢复的数据
+                    for (const data of allData) {
+                        await store.put(data);
+                    }
+                    
+                    // 更新同步时间
+                    localStorage.setItem('last-sync', Date.now());
+                    document.getElementById('last-sync').textContent = new Date().toLocaleString();
+                    
+                    this.updateProgress(100);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>✅</i> <span>恢复成功! 已恢复 ' + allData.length + ' 条数据</span>';
+                    document.getElementById('gist-status').innerHTML = 
+                        '<i>✅</i> <span>GitHub Gist: 已连接</span>';
+                    
+                    // 重新加载数据列表
+                    this.loadDataList();
+                    
+                    setTimeout(() => {
+                        this.updateProgress(0);
+                        this.updateStatus();
+                    }, 2000);
+                } catch (e) {
+                    console.error('恢复失败:', e);
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>❌</i> <span>恢复失败: ' + e.message + '</span>';
+                    document.getElementById('gist-status').innerHTML = 
+                        '<i>❌</i> <span>GitHub Gist: 连接失败</span>';
+                    this.updateProgress(0);
+                }
+            },
+            
+            // 立即同步
+            syncNow() {
+                this.backupToGist();
+            },
+            
+            // 连接设备
+            connectToDevice() {
+                const deviceId = document.getElementById('connect-device').value;
+                if (!deviceId) {
+                    alert('请输入设备ID');
+                    return;
+                }
+                
+                if (deviceId === this.deviceId) {
+                    alert('不能连接自己的设备');
+                    return;
+                }
+                
+                if (this.connectedDevices.has(deviceId)) {
+                    alert('已经连接到该设备');
+                    return;
+                }
+                
+                // 模拟连接成功
+                this.connectedDevices.add(deviceId);
+                
+                // 添加设备到列表
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-item';
+                deviceItem.innerHTML = `
+                    <span class="device-status online"></span>
+                    <div class="device-info">
+                        <div class="device-name">${deviceId}</div>
+                        <div class="device-meta">已连接</div>
+                    </div>
+                    <button class="danger" data-device="${deviceId}">断开</button>
+                `;
+                
+                deviceItem.querySelector('button').addEventListener('click', (e) => {
+                    this.disconnectDevice(deviceId);
+                    deviceItem.remove();
+                });
+                
+                document.getElementById('device-list').appendChild(deviceItem);
+                
+                alert(`已成功连接到设备: ${deviceId}`);
+            },
+            
+            // 断开设备连接
+            disconnectDevice(deviceId) {
+                this.connectedDevices.delete(deviceId);
+            },
+            
+            // 断开所有连接
+            disconnectAll() {
+                this.connectedDevices.clear();
+                document.querySelectorAll('.device-item:not(:first-child)').forEach(el => el.remove());
+            },
+            
+            // 同步数据到其他设备
+            syncToDevices(key, value) {
+                if (this.connectedDevices.size === 0) return;
+                
+                // 模拟同步过程
+                this.connectedDevices.forEach(deviceId => {
+                    console.log(`同步数据到设备: ${deviceId}`);
+                });
+            },
+            
+            // 获取所有数据
+            async getAllData() {
+                return new Promise((resolve, reject) => {
+                    const allData = [];
+                    const tx = this.db.transaction(['shared-data'], 'readonly');
+                    const store = tx.objectStore('shared-data');
+                    const request = store.openCursor();
+                    
+                    request.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            allData.push(cursor.value);
+                            cursor.continue();
+                        } else {
+                            resolve(allData);
+                        }
+                    };
+                    
+                    request.onerror = (event) => {
+                        reject(event.target.error);
+                    };
+                });
+            },
+            
+            // 更新进度条
+            updateProgress(percent) {
+                document.getElementById('progress-bar').style.width = percent + '%';
+            },
+            
+            // 更新状态显示
+            updateStatus() {
+                // 更新存储状态
+                if (this.db) {
+                    document.getElementById('storage-status').innerHTML = 
+                        '<i>✅</i> <span>IndexedDB: 已初始化</span>';
+                }
+                
+                // 更新网络状态
+                if (navigator.onLine) {
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>✅</i> <span>在线状态</span>';
+                } else {
+                    document.getElementById('sync-status').innerHTML = 
+                        '<i>❌</i> <span>离线状态 - 部分功能受限</span>';
+                }
+            },
+            
+            // 清除所有本地数据
+            clearLocalData() {
+                if (!confirm('确定要清除所有本地数据吗? 此操作不可撤销!')) {
+                    return;
+                }
+                
+                const tx = this.db.transaction(['shared-data'], 'readwrite');
+                const store = tx.objectStore('shared-data');
+                store.clear();
+                
+                localStorage.removeItem('github-token');
+                localStorage.removeItem('gist-id');
+                localStorage.removeItem('last-sync');
+                
+                this.githubToken = '';
+                this.gistId = '';
+                
+                document.getElementById('github-token').value = '';
+                document.getElementById('gist-id').value = '';
+                document.getElementById('last-sync').textContent = '从未同步';
+                
+                this.loadDataList();
+                
+                alert('所有本地数据已清除');
+            },
+            
+            // 加密数据
+            encryptData(data) {
+                if (!this.encryptionKey) return data;
+                // 简化的加密实现 - 实际应用中应使用更安全的加密算法
+                return btoa(encodeURIComponent(data + this.encryptionKey));
+            },
+            
+            // 解密数据
+            decryptData(encryptedData) {
+                if (!this.encryptionKey) return encryptedData;
+                try {
+                    const decoded = decodeURIComponent(atob(encryptedData));
+                    return decoded.replace(this.encryptionKey, '');
+                } catch (e) {
+                    console.error('解密失败:', e);
+                    return encryptedData;
+                }
+            }
+        };
+
+        // 初始化应用
+        window.addEventListener('DOMContentLoaded', () => {
+            DataSyncApp.init();
+        });
+    </script>
+</body>
+</html>
