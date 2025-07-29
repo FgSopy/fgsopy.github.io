@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>本地持久化联机数据存储</title>
+    <title>联机数据存储站 | By FgSopy</title>
     <style>
         :root {
             --primary-color: #3498db;
@@ -176,16 +176,8 @@
             border-radius: 4px;
             font-size: 0.9rem;
             margin-top: 10px;
-        }
-
-        .status.online {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: #27ae60;
-        }
-
-        .status.offline {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: #c0392b;
+            background-color: rgba(45, 54, 235, 0.2);
+            color: #2760ae;
         }
 
         .status.syncing {
@@ -285,8 +277,8 @@
 </head>
 <body>
     <header>
-        <h1>本地持久化联机数据存储</h1>
-        <p class="subtitle">基于IndexedDB和GitHub Gist的跨设备数据同步解决方案</p>
+        <h1>联机数据存储站-PWET0235-By-FgSopy</h1>
+        <p class="subtitle">online-data-storage_station_pwet0235_byfgsopy</p>
     </header>
 
     <div class="container">
@@ -378,15 +370,15 @@
         <div class="card">
             <h2><i>📊</i> 系统状态</h2>
             
-            <div class="status online" id="storage-status">
+            <div class="status" id="storage-status">
                 <i>✅</i> <span>IndexedDB: 已初始化</span>
             </div>
             
-            <div class="status offline" id="gist-status">
+            <div class="status" id="gist-status">
                 <i>❌</i> <span>GitHub Gist: 未连接</span>
             </div>
             
-            <div class="status offline" id="p2p-status">
+            <div class="status" id="p2p-status">
                 <i>❌</i> <span>P2P连接: 未激活</span>
             </div>
             
