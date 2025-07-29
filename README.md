@@ -8,4 +8,5 @@ It used others' picture. \
 
 ---
 
-2025/7/27 - It was created. | 网站建立
+2025/7/28\~29 - 更新完善
+2025/7/27 - 网站建立
