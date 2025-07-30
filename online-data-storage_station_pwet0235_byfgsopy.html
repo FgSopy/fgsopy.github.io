@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="/css/ODSS.css">
-    <script type="text/javascript" src="/js/ODSS.js"></script>
 </head>
 <body>
     <header>
@@ -20,12 +19,12 @@
             
             <div class="form-group">
                 <label for="data-key">键名:</label>
-                <input type="text" id="data-key" placeholder="输入键名">
+                <input type="text" id="data-key" placeholder="输入键名 (例如: user_settings)">
             </div>
             
             <div class="form-group">
                 <label for="data-value">值:</label>
-                <textarea id="data-value" placeholder="输入值 (支持JSON格式)"></textarea>
+                <textarea id="data-value" placeholder='输入值 (支持JSON格式，例如: {"theme": "dark", "notifications": true})'></textarea>
             </div>
             
             <div class="actions">
@@ -35,7 +34,50 @@
             </div>
             
             <div class="data-list" id="data-list">
-                <!-- 数据列表将通过JS动态生成 -->
+                <div class="data-item">
+                    <div class="data-content">
+                        <strong>示例数据</strong>
+                        <div>{"version": "1.0.0"}</div>
+                        <div class="data-meta">由 system 于 2023-08-15 创建</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备管理区域 -->
+        <div class="card">
+            <h2><i>📱</i> 设备管理</h2>
+            
+            <div class="device-list" id="device-list">
+                <div class="device-item">
+                    <span class="device-status online"></span>
+                    <div class="device-info">
+                        <div class="device-name">当前设备</div>
+                        <div class="device-meta" id="device-id">正在生成设备ID...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="connect-device">连接其他设备:</label>
+                <input type="text" id="connect-device" placeholder="输入设备ID">
+            </div>
+            
+            <div class="actions">
+                <button id="connect-btn"><i>🔗</i> 连接设备</button>
+                <button id="disconnect-btn" class="danger"><i>🔌</i> 断开所有连接</button>
+                <button id="refresh-btn" class="secondary"><i>🔄</i> 刷新列表</button>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator">
+                    <span class="status-dot" id="local-status-dot"></span>
+                    <span>本地存储</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot" id="sync-status-dot"></span>
+                    <span>设备同步</span>
+                </div>
             </div>
         </div>
 
@@ -46,6 +88,7 @@
             <div class="form-group">
                 <label for="github-token">GitHub Token:</label>
                 <input type="password" id="github-token" placeholder="输入GitHub个人访问令牌">
+                <small>需要gist权限 (<a href="https://github.com/settings/tokens" target="_blank">获取Token</a>)</small>
             </div>
             
             <div class="form-group">
@@ -73,45 +116,20 @@
             </div>
         </div>
 
-        <!-- 设备管理区域 -->
-        <div class="card">
-            <h2><i>📱</i> 设备管理</h2>
-            
-            <div class="device-list" id="device-list">
-                <div class="device-item">
-                    <span class="device-status online"></span>
-                    <div class="device-info">
-                        <div class="device-name">当前设备</div>
-                        <div class="device-meta" id="device-id">正在生成设备ID...</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="connect-device">连接其他设备:</label>
-                <input type="text" id="connect-device" placeholder="输入设备ID">
-            </div>
-            
-            <div class="actions">
-                <button id="connect-btn"><i>🔗</i> 连接设备</button>
-                <button id="disconnect-btn" class="danger"><i>🔌</i> 断开所有连接</button>
-            </div>
-        </div>
-
         <!-- 系统状态区域 -->
         <div class="card">
             <h2><i>📊</i> 系统状态</h2>
             
-            <div class="status" id="storage-status">
+            <div class="status online" id="storage-status">
                 <i>✅</i> <span>IndexedDB: 已初始化</span>
             </div>
             
-            <div class="status" id="gist-status">
+            <div class="status offline" id="gist-status">
                 <i>❌</i> <span>GitHub Gist: 未连接</span>
             </div>
             
-            <div class="status" id="p2p-status">
-                <i>❌</i> <span>P2P连接: 未激活</span>
+            <div class="status offline" id="p2p-status">
+                <i>❌</i> <span>设备连接: 未激活</span>
             </div>
             
             <div class="form-group" style="margin-top: 20px;">
@@ -122,6 +140,7 @@
             
             <div class="actions">
                 <button id="clear-btn" class="danger"><i>🧹</i> 清除所有本地数据</button>
+                <button id="reset-btn" class="secondary"><i>🔄</i> 重置连接</button>
             </div>
         </div>
     </div>
@@ -129,13 +148,16 @@
     <div class="instructions">
         <h3>使用说明:</h3>
         <ol>
-            <li><strong>本地存储</strong>：数据保存在IndexedDB中，设备重启后依然可用</li>
-            <li><strong>GitHub Gist同步</strong>：输入GitHub个人访问令牌（需<code>gist</code>权限）进行云端备份</li>
-            <li><strong>多设备同步</strong>：连接其他设备ID进行点对点实时同步</li>
-            <li><strong>数据加密</strong>：可选设置加密密钥保护敏感数据</li>
-            <li>GitHub Token创建地址：<a href="https://github.com/settings/tokens" target="_blank">https://github.com/settings/tokens</a></li>
+            <li><strong>连接设备</strong>：在两个设备上打开此页面，互相输入对方的设备ID并连接</li>
+            <li><strong>保存数据</strong>：在任一设备上保存数据，将自动同步到所有连接的设备</li>
+            <li><strong>刷新测试</strong>：刷新页面后连接状态和数据将自动恢复</li>
+            <li><strong>云端备份</strong>：使用GitHub Token创建Gist备份点（可选）</li>
         </ol>
     </div>
+    
+    <div class="notification" id="notification">操作成功!</div>
+    
+    <script type="text/javascript" src="/js/ODSS.js"></script>
     
 </body>
 </html>
