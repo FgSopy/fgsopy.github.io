@@ -1,1 +1,23 @@
-
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script charset="utf-8" src="script.js"></script>
+    <title>Get OUT!</title>
+  </head>
+  <body>
+    <h1>建议退出。</h1>
+    <div>
+      <h2>保存</h2>
+      <textarea id="textInput" placeholder="输入你想保存的文字..."></textarea>
+      <br/>
+      <input type="file" id="imageInput" accept="image/*" />
+      <br/>
+      <!-- 触发OAuth授权 -->
+      <button onclick="startSave()">授权并保存到GitHub Gist</button>
+      <p id="status"></p>
+    </div>
+  </body>
+</html>
